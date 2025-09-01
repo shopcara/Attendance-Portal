@@ -18,7 +18,7 @@ const AttendancePortal = () => {
   const fetchEmployees = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://147.79.70.60:3002/api/employees");
+      const response = await fetch("/api/employees");
       if (!response.ok) {
         throw new Error("Failed to fetch employees");
       }
@@ -35,7 +35,7 @@ const AttendancePortal = () => {
   const fetchAttendance = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://147.79.70.60:3002/api/attendance");
+      const response = await fetch("/api/attendance");
       if (!response.ok) {
         throw new Error("Failed to fetch attendance data");
       }
@@ -52,7 +52,7 @@ const AttendancePortal = () => {
   const fetchEmployeeAttendance = async (empId) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://147.79.70.60:3002/api/employees/${empId}`);
+      const response = await fetch(`/api/employees/${empId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch employee attendance");
       }
@@ -69,7 +69,7 @@ const AttendancePortal = () => {
   const fetchEmployeeMonthlyReport = async (empId, month) => {
     try {
       setLoading(true);
-      const response = await fetch(`http://147.79.70.60:3002/api/employees/${empId}/monthly-report?month=${month}`);
+      const response = await fetch(`api/employees/${empId}/monthly-report?month=${month}`);
       if (!response.ok) {
         throw new Error("Failed to fetch employee monthly report");
       }
