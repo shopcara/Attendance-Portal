@@ -167,8 +167,8 @@ const AttendancePortal = () => {
       if (!empAttendance || empAttendance.length === 0) {
         return {
           id: emp.emp_id,
-          name: emp.exec_name,
-          phone: emp.phone_number,
+          name: emp.Name,
+          phone: emp.PhoneNumber,
           checkIn: "-",
           checkOut: "-",
           overtime: 0,
@@ -181,8 +181,8 @@ const AttendancePortal = () => {
       
       return {
         id: emp.emp_id,
-        name: emp.exec_name,
-        phone: emp.phone_number,
+        name: emp.Name,
+        phone: emp.PhoneNumber,
         checkIn: latestRecord.check_in,
         checkOut: latestRecord.check_out,
         overtime: latestRecord.overtime || 0,
@@ -424,7 +424,7 @@ const formatOvertime = (time, inputFormat = 'minutes') => {
                 >
                   <option value="">Select Employee</option>
                   {employees.map(emp => (
-                    <option key={emp.emp_id} value={emp.emp_id}>{emp.exec_name}</option>
+                    <option key={emp.emp_id} value={emp.emp_id}>{emp.Name}</option>
                   ))}
                 </select>
               </div>
