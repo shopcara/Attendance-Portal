@@ -351,8 +351,8 @@ const AttendancePortal = () => {
             </div>
 
             <div className="p-2 sm:p-4">
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto w-full rounded-lg border border-slate-200">
+                <table className="min-w-full text-left">
                   <thead className="bg-slate-50/80">
                     <tr className="text-slate-600">
                       <th className="p-4 text-sm font-semibold">Exec Name</th>
@@ -504,8 +504,8 @@ const AttendancePortal = () => {
             )}
 
             <div className="p-2 sm:p-4">
-              <div className="overflow-x-auto rounded-lg border border-slate-200">
-                <table className="w-full text-left">
+              <div className="overflow-x-auto w-full rounded-lg border border-slate-200">
+                <table className="min-w-full text-left">
                   <thead className="bg-slate-50/80">
                     <tr className="text-slate-600">
                       <th className="p-4 text-sm font-semibold">Date</th>
