@@ -58,6 +58,14 @@ input:focus, select:focus {
 tr {
   transition: background-color 0.15s ease;
 }
+@media (max-width: 768px) {
+  html {
+    font-size: 50%; /* scale down so desktop layout fits */
+  }
+  body {
+    min-width: 1024px; /* lock minimum width */
+  }
+}
 
 /* Status badge animation */
 @keyframes pulse {
