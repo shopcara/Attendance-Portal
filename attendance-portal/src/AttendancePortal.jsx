@@ -271,7 +271,7 @@
     const dayAttendanceData = getDayAttendanceData();
 
     return (
-      <div className="min-h-screen sm:min-h-0 bg-slate-50 font-inter">
+      <div className="min-h-screen w-screen sm:min-h-0 sm:w-auto bg-slate-50 font-inter">
         <header className="w-full bg-white border-b border-slate-200/70 shadow-sm">
           <div className="px-6 py-4 relative flex items-center justify-between">
             <div className="flex items-center space-x-3">
