@@ -292,7 +292,7 @@ const AttendancePortal = () => {
         </div>
       </header>
 
-      <main className="flex-1 w-full px-4 sm:px-6">
+      <main className="flex-1 w-full px-4 sm:px-6 py-8 overflow-x-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div className="mb-4 sm:mb-0">
             <h2 className="text-2xl font-bold text-slate-900">Attendance Records</h2>
