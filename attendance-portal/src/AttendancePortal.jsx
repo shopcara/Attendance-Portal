@@ -271,7 +271,7 @@ const AttendancePortal = () => {
   const dayAttendanceData = getDayAttendanceData();
 
   return (
-    <div className="h-screen sm:h-auto w-screen sm:w-auto bg-slate-50 font-inter flex flex-col">
+    <div className="h-screen sm:h-auto w-screen sm:w-auto overflow-x-hidden bg-slate-50 font-inter flex flex-col">
       <header className="w-full bg-white border-b border-slate-200/70 shadow-sm">
         <div className="px-6 py-4 relative flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -292,7 +292,7 @@ const AttendancePortal = () => {
         </div>
       </header>
 
-      <main className="w-full max-w-7xl mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-1 w-full px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
           <div className="mb-4 sm:mb-0">
             <h2 className="text-2xl font-bold text-slate-900">Attendance Records</h2>
