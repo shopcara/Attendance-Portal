@@ -14,22 +14,34 @@ const AttendancePortal = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const isException = (val) =>
+  typeof val === "string" && val.trim().toLowerCase() === "yes";
+
   // Fetch all employees
   const fetchEmployees = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("/api/employees");
-      if (!response.ok) {
-        throw new Error("Failed to fetch employees");
-      }
-      const data = await response.json();
-      setEmployees(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  try {
+    setLoading(true);
+    const response = await fetch("/api/employees");
+    if (!response.ok) throw new Error("Failed to fetch employees");
+    const data = await response.json();
+
+    // keep only employees WITHOUT AttendanceException = YES (case/space-safe)
+    const filtered = data.filter(emp => !isException(emp.AttendanceException));
+
+    setEmployees(filtered);
+
+    // if currently selected employee was filtered out, clear the selection
+    if (selectedEmployee && !filtered.some(e =>
+      String(e.emp_id) === String(selectedEmployee)
+    )) {
+      setSelectedEmployee("");
     }
-  };
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // Fetch all attendance records
   const fetchAttendance = async () => {
