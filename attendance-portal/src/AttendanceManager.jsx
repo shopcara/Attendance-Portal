@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import "./index.css";
 import { useNavigate } from 'react-router-dom';
 
-
 const AttendanceManager = () => {
     const navigate = useNavigate();
     const [attendanceRecords, setAttendanceRecords] = useState([]);
@@ -30,7 +29,7 @@ const AttendanceManager = () => {
         }
     };
 
-    // Fetch attendance records
+    // Fetch attendance records - FIXED ENDPOINT
     const fetchAttendanceRecords = async () => {
         try {
             setLoading(true);
@@ -42,20 +41,23 @@ const AttendanceManager = () => {
             if (filters.employee_id) params.append('employee_id', filters.employee_id);
 
             const queryString = params.toString();
-            const url = queryString ? `/api/employees/crud?${queryString}` : '/api/employees/crud';
+            // CORRECTED: Use /api/attendance instead of /api/employees/crud
+            const url = queryString ? `/api/attendance?${queryString}` : '/api/attendance';
 
             const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to fetch attendance records");
+            
             const data = await response.json();
             setAttendanceRecords(data);
         } catch (err) {
             setError(err.message);
+            console.error('Fetch error:', err);
         } finally {
             setLoading(false);
         }
     };
 
-    // Handle form submission for create/update
+    // Handle form submission for create/update - FIXED ENDPOINTS
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -74,8 +76,8 @@ const AttendanceManager = () => {
             let response;
 
             if (editingRecord) {
-                // Update existing record
-                response = await fetch(`/api/employees/crud/${editingRecord.id}`, {
+                // CORRECTED: Use /api/attendance/:id instead of /api/employees/crud/:id
+                response = await fetch(`/api/attendance/${editingRecord.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -83,8 +85,8 @@ const AttendanceManager = () => {
                     body: JSON.stringify(recordData)
                 });
             } else {
-                // Create new record
-                response = await fetch('/api/employees/crud', {
+                // CORRECTED: Use /api/attendance instead of /api/employees/crud
+                response = await fetch('/api/attendance', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,14 +109,15 @@ const AttendanceManager = () => {
         }
     };
 
-    // Delete an attendance record
+    // Delete an attendance record - FIXED ENDPOINT
     const handleDelete = async (id) => {
         if (!window.confirm('Are you sure you want to delete this attendance record?')) {
             return;
         }
 
         try {
-            const response = await fetch(`/api/employees/crud/${id}`, {
+            // CORRECTED: Use /api/attendance/:id instead of /api/employees/crud/:id
+            const response = await fetch(`/api/attendance/${id}`, {
                 method: 'DELETE'
             });
 
@@ -129,26 +132,40 @@ const AttendanceManager = () => {
         }
     };
 
-    // Format time for display
+    // Format time for display - IMPROVED TO HANDLE NULL/VALUES
     const formatTime = (timeString) => {
-        if (!timeString || timeString === "-" || timeString === null) return "-";
+        if (!timeString || timeString === "-" || timeString === null || timeString === "null") return "-";
+        
+        // Handle cases where time might be in different formats
+        if (typeof timeString === 'string' && timeString.includes(':')) {
+            const [hours, minutes] = timeString.split(':');
+            const hourNum = parseInt(hours, 10);
+            const period = hourNum >= 12 ? 'PM' : 'AM';
+            const displayHour = hourNum % 12 || 12;
 
-        const [hours, minutes] = timeString.split(':');
-        const hourNum = parseInt(hours, 10);
-        const period = hourNum >= 12 ? 'PM' : 'AM';
-        const displayHour = hourNum % 12 || 12;
-
-        return `${displayHour}:${minutes} ${period}`;
+            return `${displayHour}:${minutes} ${period}`;
+        }
+        
+        return "-";
     };
 
-    // Format date for display
+    // Format date for display - IMPROVED ERROR HANDLING
     const formatDisplayDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-GB', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
+        try {
+            if (!dateString) return "Invalid Date";
+            
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "Invalid Date";
+            
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        } catch (error) {
+            console.error('Date formatting error:', error);
+            return "Invalid Date";
+        }
     };
 
     // Load initial data
