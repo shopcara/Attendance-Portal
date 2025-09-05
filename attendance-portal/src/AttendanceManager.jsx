@@ -29,7 +29,7 @@ const AttendanceManager = () => {
         }
     };
 
-    // Fetch attendance records - FIXED ENDPOINT
+    // In your fetchAttendanceRecords function, add debugging:
     const fetchAttendanceRecords = async () => {
         try {
             setLoading(true);
@@ -41,12 +41,16 @@ const AttendanceManager = () => {
             if (filters.employee_id) params.append('employee_id', filters.employee_id);
 
             const queryString = params.toString();
-            // CORRECTED: Use /api/attendance instead of /api/employees/crud
             const url = queryString ? `/api/attendance?${queryString}` : '/api/attendance';
 
+            console.log('Fetching from URL:', url); // Debug log
+
             const response = await fetch(url);
+
+            console.log('Response status:', response.status); // Debug log
+
             if (!response.ok) throw new Error("Failed to fetch attendance records");
-            
+
             const data = await response.json();
             setAttendanceRecords(data);
         } catch (err) {
@@ -135,7 +139,7 @@ const AttendanceManager = () => {
     // Format time for display - IMPROVED TO HANDLE NULL/VALUES
     const formatTime = (timeString) => {
         if (!timeString || timeString === "-" || timeString === null || timeString === "null") return "-";
-        
+
         // Handle cases where time might be in different formats
         if (typeof timeString === 'string' && timeString.includes(':')) {
             const [hours, minutes] = timeString.split(':');
@@ -145,7 +149,7 @@ const AttendanceManager = () => {
 
             return `${displayHour}:${minutes} ${period}`;
         }
-        
+
         return "-";
     };
 
@@ -153,10 +157,10 @@ const AttendanceManager = () => {
     const formatDisplayDate = (dateString) => {
         try {
             if (!dateString) return "Invalid Date";
-            
+
             const date = new Date(dateString);
             if (isNaN(date.getTime())) return "Invalid Date";
-            
+
             return date.toLocaleDateString('en-GB', {
                 day: '2-digit',
                 month: '2-digit',
