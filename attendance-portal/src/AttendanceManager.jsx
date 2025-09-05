@@ -29,7 +29,7 @@ const AttendanceManager = () => {
         }
     };
 
-    // In your fetchAttendanceRecords function, add debugging:
+    // Fetch attendance records
     const fetchAttendanceRecords = async () => {
         try {
             setLoading(true);
@@ -41,13 +41,14 @@ const AttendanceManager = () => {
             if (filters.employee_id) params.append('employee_id', filters.employee_id);
 
             const queryString = params.toString();
-            const url = queryString ? `/api/attendance?${queryString}` : '/api/attendance';
+            const url = queryString 
+                ? `/api/attendance/crud?${queryString}` 
+                : '/api/attendance/crud';
 
-            console.log('Fetching from URL:', url); // Debug log
+            console.log('Fetching from URL:', url);
 
             const response = await fetch(url);
-
-            console.log('Response status:', response.status); // Debug log
+            console.log('Response status:', response.status);
 
             if (!response.ok) throw new Error("Failed to fetch attendance records");
 
@@ -69,19 +70,19 @@ const AttendanceManager = () => {
 
         const formData = new FormData(e.target);
         const recordData = {
-            emp_id: formData.get('emp_id'),
+            emp_id: parseInt(formData.get('emp_id')),
             attendance_date: formData.get('attendance_date'),
-            check_in: formData.get('check_in') || null,
-            check_out: formData.get('check_out') || null,
-            overtime: formData.get('overtime') || null
+            check_in: formData.get('check_in') || "",
+            check_out: formData.get('check_out') || "",
+            overtime: formData.get('overtime') || "0"
         };
 
         try {
             let response;
 
             if (editingRecord) {
-                // CORRECTED: Use /api/attendance/:id instead of /api/employees/crud/:id
-                response = await fetch(`/api/attendance/${editingRecord.id}`, {
+                // CORRECTED: Use the correct endpoint with ID
+                response = await fetch(`/api/attendance/crud/${editingRecord.id}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -89,8 +90,8 @@ const AttendanceManager = () => {
                     body: JSON.stringify(recordData)
                 });
             } else {
-                // CORRECTED: Use /api/attendance instead of /api/employees/crud
-                response = await fetch('/api/attendance', {
+                // CORRECTED: Use the correct endpoint
+                response = await fetch('/api/attendance/crud', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -120,8 +121,8 @@ const AttendanceManager = () => {
         }
 
         try {
-            // CORRECTED: Use /api/attendance/:id instead of /api/employees/crud/:id
-            const response = await fetch(`/api/attendance/${id}`, {
+            // CORRECTED: Use the correct endpoint with ID
+            const response = await fetch(`/api/attendance/crud/${id}`, {
                 method: 'DELETE'
             });
 
@@ -138,7 +139,7 @@ const AttendanceManager = () => {
 
     // Format time for display - IMPROVED TO HANDLE NULL/VALUES
     const formatTime = (timeString) => {
-        if (!timeString || timeString === "-" || timeString === null || timeString === "null") return "-";
+        if (!timeString || timeString === "-" || timeString === null || timeString === "null" || timeString === "") return "-";
 
         // Handle cases where time might be in different formats
         if (typeof timeString === 'string' && timeString.includes(':')) {
@@ -331,7 +332,7 @@ const AttendanceManager = () => {
                                         name="overtime"
                                         min="0"
                                         step="1"
-                                        defaultValue={editingRecord?.overtime || ''}
+                                        defaultValue={editingRecord?.overtime || '0'}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
