@@ -310,6 +310,7 @@ const AttendanceManager = () => {
                                     <input
                                         type="time"
                                         name="check_in"
+                                        step="1" 
                                         defaultValue={editingRecord?.check_in || ''}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
@@ -320,6 +321,7 @@ const AttendanceManager = () => {
                                     <input
                                         type="time"
                                         name="check_out"
+                                        step="1" 
                                         defaultValue={editingRecord?.check_out || ''}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
