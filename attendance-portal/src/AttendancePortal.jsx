@@ -742,7 +742,7 @@ const mergeAttendanceWithAbsent = (records, start, end) => {
                         </td>
                         <td className="p-4 text-purple-600">{formatOvertime(item.overtime)}</td>
                         <td className="p-4">
-                          <StatusBadge status={item.check_in || item.check_out ? "present" : "absent"} />
+                          <StatusBadge status={item.status} />
                         </td>
                       </tr>
                     ))}
