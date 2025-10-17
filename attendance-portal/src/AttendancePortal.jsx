@@ -15,36 +15,38 @@ const AttendancePortal = () => {
   const [error, setError] = useState(null);
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [filteredAttendanceData, setFilteredAttendanceData] = useState([]);
+
 
 
   const isException = (val) =>
-  typeof val === "string" && val.trim().toLowerCase() === "yes";
+    typeof val === "string" && val.trim().toLowerCase() === "yes";
 
   // Fetch all employees
   const fetchEmployees = async () => {
-  try {
-    setLoading(true);
-    const response = await fetch("/api/employees");
-    if (!response.ok) throw new Error("Failed to fetch employees");
-    const data = await response.json();
+    try {
+      setLoading(true);
+      const response = await fetch("/api/employees");
+      if (!response.ok) throw new Error("Failed to fetch employees");
+      const data = await response.json();
 
-    // keep only employees WITHOUT AttendanceException = YES (case/space-safe)
-    const filtered = data.filter(emp => !isException(emp.AttendanceException));
+      // keep only employees WITHOUT AttendanceException = YES (case/space-safe)
+      const filtered = data.filter(emp => !isException(emp.AttendanceException));
 
-    setEmployees(filtered);
+      setEmployees(filtered);
 
-    // if currently selected employee was filtered out, clear the selection
-    if (selectedEmployee && !filtered.some(e =>
-      String(e.emp_id) === String(selectedEmployee)
-    )) {
-      setSelectedEmployee("");
+      // if currently selected employee was filtered out, clear the selection
+      if (selectedEmployee && !filtered.some(e =>
+        String(e.emp_id) === String(selectedEmployee)
+      )) {
+        setSelectedEmployee("");
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
     }
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   // Fetch all attendance records
   const fetchAttendance = async () => {
@@ -64,18 +66,19 @@ const AttendancePortal = () => {
   };
 
   const fetchAttendanceRange = async (start, end) => {
-  try {
-    setLoading(true);
-    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
-    if (!response.ok) throw new Error("Failed to fetch range attendance data");
-    const data = await response.json();
-    setAttendanceData(data);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
+      if (!response.ok) throw new Error("Failed to fetch range attendance data");
+      const data = await response.json();
+      setFilteredAttendanceData(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
 
   // Fetch specific employee attendance
@@ -298,68 +301,68 @@ const AttendancePortal = () => {
   };
 
   const handleQuickFilter = (filterType) => {
-  const today = new Date();
-  let start = '';
-  let end = '';
+    const today = new Date();
+    let start = '';
+    let end = '';
 
-  switch (filterType) {
-    case 'last7Days':
-      start = new Date(today);
-      start.setDate(today.getDate() - 7);
-      end = new Date(today);
-      break;
+    switch (filterType) {
+      case 'last7Days':
+        start = new Date(today);
+        start.setDate(today.getDate() - 7);
+        end = new Date(today);
+        break;
 
-    case 'last30Days':
-      start = new Date(today);
-      start.setDate(today.getDate() - 30);
-      end = new Date(today);
-      break;
+      case 'last30Days':
+        start = new Date(today);
+        start.setDate(today.getDate() - 30);
+        end = new Date(today);
+        break;
 
-    case 'thisMonthCycle':
-      const day = today.getDate();
-      const month = today.getMonth();
-      const year = today.getFullYear();
-      if (day < 20) {
-        start = new Date(year, month - 1, 20);
-      } else {
-        start = new Date(year, month, 20);
-      }
-      end = new Date(today);
-      break;
+      case 'thisMonthCycle':
+        const day = today.getDate();
+        const month = today.getMonth();
+        const year = today.getFullYear();
+        if (day < 20) {
+          start = new Date(year, month - 1, 20);
+        } else {
+          start = new Date(year, month, 20);
+        }
+        end = new Date(today);
+        break;
 
-    case 'lastMonthCycle':
-      const day2 = today.getDate();
-      const month2 = today.getMonth();
-      const year2 = today.getFullYear();
-      if (day2 < 20) {
-        start = new Date(year2, month2 - 2, 20);
-        end = new Date(year2, month2 - 1, 19);
-      } else {
-        start = new Date(year2, month2 - 1, 20);
-        end = new Date(year2, month2, 19);
-      }
-      break;
+      case 'lastMonthCycle':
+        const day2 = today.getDate();
+        const month2 = today.getMonth();
+        const year2 = today.getFullYear();
+        if (day2 < 20) {
+          start = new Date(year2, month2 - 2, 20);
+          end = new Date(year2, month2 - 1, 19);
+        } else {
+          start = new Date(year2, month2 - 1, 20);
+          end = new Date(year2, month2, 19);
+        }
+        break;
 
-    default:
-      return;
-  }
+      default:
+        return;
+    }
 
-  const formatDate = (date) => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+    const formatDate = (date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    };
+
+    const formattedStart = formatDate(start);
+    const formattedEnd = formatDate(end);
+
+    setStartDate(formattedStart);
+    setEndDate(formattedEnd);
+
+    // Optional: you can trigger your range fetch here if needed
+    fetchAttendanceRange(formattedStart, formattedEnd);
   };
-
-  const formattedStart = formatDate(start);
-  const formattedEnd = formatDate(end);
-
-  setStartDate(formattedStart);
-  setEndDate(formattedEnd);
-
-  // Optional: you can trigger your range fetch here if needed
-  fetchAttendanceRange(formattedStart, formattedEnd);
-};
 
 
   const dayStats = getDayStats();
@@ -539,31 +542,31 @@ const AttendancePortal = () => {
             </div>
 
             <div className="flex flex-wrap gap-2 mt-2">
-  <button
-    onClick={() => handleQuickFilter('last7Days')}
-    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
-  >
-    Last 7 Days
-  </button>
-  <button
-    onClick={() => handleQuickFilter('last30Days')}
-    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
-  >
-    Last 30 Days
-  </button>
-  <button
-    onClick={() => handleQuickFilter('thisMonthCycle')}
-    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
-  >
-    This Month Cycle
-  </button>
-  <button
-    onClick={() => handleQuickFilter('lastMonthCycle')}
-    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
-  >
-    Last Month Cycle
-  </button>
-</div>
+              <button
+                onClick={() => handleQuickFilter('last7Days')}
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+              >
+                Last 7 Days
+              </button>
+              <button
+                onClick={() => handleQuickFilter('last30Days')}
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+              >
+                Last 30 Days
+              </button>
+              <button
+                onClick={() => handleQuickFilter('thisMonthCycle')}
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+              >
+                This Month Cycle
+              </button>
+              <button
+                onClick={() => handleQuickFilter('lastMonthCycle')}
+                className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+              >
+                Last Month Cycle
+              </button>
+            </div>
 
 
             {employeeMonthlyData && (
@@ -640,28 +643,24 @@ const AttendancePortal = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {employeeMonthlyData && employeeMonthlyData.attendance.map((item) => (
-                      <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="p-4 font-medium text-slate-900">
-                          {formatDisplayDate(item.attendance_date)}
-                        </td>
+                    {(filteredAttendanceData.length > 0
+                      ? filteredAttendanceData
+                      : employeeMonthlyData?.attendance || []
+                    ).map((item) => (
+                      <tr key={item.id}>
+                        <td className="p-4 font-medium text-slate-900">{formatDisplayDate(item.attendance_date)}</td>
                         <td className="p-4 text-slate-600">{formatTime(item.check_in)}</td>
                         <td className="p-4 text-slate-600">{formatTime(item.check_out)}</td>
                         <td className="p-4">
-                          <span className="font-medium text-slate-900">
-                            {calculateHoursWorked(item.check_in, item.check_out)}
-                          </span>
+                          {calculateHoursWorked(item.check_in, item.check_out)}
                         </td>
-                        <td className="p-4">
-                          <span className="font-medium text-purple-600">
-                            {formatOvertime(item.overtime)}
-                          </span>
-                        </td>
+                        <td className="p-4 text-purple-600">{formatOvertime(item.overtime)}</td>
                         <td className="p-4">
                           <StatusBadge status={item.check_in || item.check_out ? "present" : "absent"} />
                         </td>
                       </tr>
                     ))}
+
                   </tbody>
                 </table>
               </div>
