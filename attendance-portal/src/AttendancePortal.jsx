@@ -68,7 +68,7 @@ const AttendancePortal = () => {
  const fetchAttendanceRange = async (start, end) => {
   try {
     setLoading(true);
-    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
+    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${selectedEmployee}`);
     if (!response.ok) throw new Error("Failed to fetch range attendance data");
     const data = await response.json();
     const groupedData = groupAttendanceByDate(data);
@@ -80,8 +80,6 @@ const AttendancePortal = () => {
     setLoading(false);
   }
 };
-
-
 
 
   // Fetch specific employee attendance
