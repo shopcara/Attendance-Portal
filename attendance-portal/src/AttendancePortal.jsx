@@ -65,19 +65,22 @@ const AttendancePortal = () => {
     }
   };
 
-  const fetchAttendanceRange = async (start, end) => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
-      if (!response.ok) throw new Error("Failed to fetch range attendance data");
-      const data = await response.json();
-      setFilteredAttendanceData(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const fetchAttendanceRange = async (start, end) => {
+  try {
+    setLoading(true);
+    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
+    if (!response.ok) throw new Error("Failed to fetch range attendance data");
+    const data = await response.json();
+    const groupedData = groupAttendanceByDate(data);
+    groupedData.sort((a, b) => new Date(a.attendance_date) - new Date(b.attendance_date));
+    setFilteredAttendanceData(groupedData);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
 
 
@@ -97,6 +100,33 @@ const AttendancePortal = () => {
       setLoading(false);
     }
   };
+
+  const groupAttendanceByDate = (records) => {
+  const grouped = {};
+
+  records.forEach(rec => {
+    const key = `${rec.emp_id}_${rec.attendance_date}`;
+    if (!grouped[key]) {
+      grouped[key] = {
+        ...rec,
+        check_in: rec.check_in,
+        check_out: rec.check_out,
+      };
+    } else {
+      // Choose earliest check-in
+      if (rec.check_in && (!grouped[key].check_in || rec.check_in < grouped[key].check_in)) {
+        grouped[key].check_in = rec.check_in;
+      }
+      // Choose latest check-out
+      if (rec.check_out && (!grouped[key].check_out || rec.check_out > grouped[key].check_out)) {
+        grouped[key].check_out = rec.check_out;
+      }
+    }
+  });
+
+  return Object.values(grouped);
+};
+
 
   // Fetch employee monthly report
   const fetchEmployeeMonthlyReport = async (empId, month) => {
