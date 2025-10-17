@@ -13,6 +13,9 @@ const AttendancePortal = () => {
   const [employeeMonthlyData, setEmployeeMonthlyData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+
 
   const isException = (val) =>
   typeof val === "string" && val.trim().toLowerCase() === "yes";
@@ -59,6 +62,21 @@ const AttendancePortal = () => {
       setLoading(false);
     }
   };
+
+  const fetchAttendanceRange = async (start, end) => {
+  try {
+    setLoading(true);
+    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}`);
+    if (!response.ok) throw new Error("Failed to fetch range attendance data");
+    const data = await response.json();
+    setAttendanceData(data);
+  } catch (err) {
+    setError(err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   // Fetch specific employee attendance
   const fetchEmployeeAttendance = async (empId) => {
@@ -279,6 +297,71 @@ const AttendancePortal = () => {
     };
   };
 
+  const handleQuickFilter = (filterType) => {
+  const today = new Date();
+  let start = '';
+  let end = '';
+
+  switch (filterType) {
+    case 'last7Days':
+      start = new Date(today);
+      start.setDate(today.getDate() - 7);
+      end = new Date(today);
+      break;
+
+    case 'last30Days':
+      start = new Date(today);
+      start.setDate(today.getDate() - 30);
+      end = new Date(today);
+      break;
+
+    case 'thisMonthCycle':
+      const day = today.getDate();
+      const month = today.getMonth();
+      const year = today.getFullYear();
+      if (day < 20) {
+        start = new Date(year, month - 1, 20);
+      } else {
+        start = new Date(year, month, 20);
+      }
+      end = new Date(today);
+      break;
+
+    case 'lastMonthCycle':
+      const day2 = today.getDate();
+      const month2 = today.getMonth();
+      const year2 = today.getFullYear();
+      if (day2 < 20) {
+        start = new Date(year2, month2 - 2, 20);
+        end = new Date(year2, month2 - 1, 19);
+      } else {
+        start = new Date(year2, month2 - 1, 20);
+        end = new Date(year2, month2, 19);
+      }
+      break;
+
+    default:
+      return;
+  }
+
+  const formatDate = (date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
+  const formattedStart = formatDate(start);
+  const formattedEnd = formatDate(end);
+
+  setStartDate(formattedStart);
+  setEndDate(formattedEnd);
+
+  // Optional: you can trigger your range fetch here if needed
+  fetchAttendanceRange(formattedStart, formattedEnd);
+};
+
+
   const dayStats = getDayStats();
   const dayAttendanceData = getDayAttendanceData();
 
@@ -454,6 +537,34 @@ const AttendancePortal = () => {
                 />
               </div>
             </div>
+
+            <div className="flex flex-wrap gap-2 mt-2">
+  <button
+    onClick={() => handleQuickFilter('last7Days')}
+    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+  >
+    Last 7 Days
+  </button>
+  <button
+    onClick={() => handleQuickFilter('last30Days')}
+    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+  >
+    Last 30 Days
+  </button>
+  <button
+    onClick={() => handleQuickFilter('thisMonthCycle')}
+    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+  >
+    This Month Cycle
+  </button>
+  <button
+    onClick={() => handleQuickFilter('lastMonthCycle')}
+    className="px-3 py-1.5 text-xs bg-slate-100 hover:bg-indigo-100 rounded-lg text-slate-700 hover:text-indigo-600"
+  >
+    Last Month Cycle
+  </button>
+</div>
+
 
             {employeeMonthlyData && (
               <div className="p-6 border-b border-slate-100 grid grid-cols-2 md:grid-cols-4 gap-4">
