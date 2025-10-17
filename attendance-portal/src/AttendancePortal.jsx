@@ -17,6 +17,10 @@ const AttendancePortal = () => {
   const [endDate, setEndDate] = useState('');
   const [filteredAttendanceData, setFilteredAttendanceData] = useState([]);
 
+  const totalPresent = filteredAttendanceData.filter(d => d.status === "present").length;
+const totalAbsent = filteredAttendanceData.filter(d => d.status === "absent").length;
+
+
 
 
   const isException = (val) =>
@@ -65,21 +69,23 @@ const AttendancePortal = () => {
     }
   };
 
- const fetchAttendanceRange = async (start, end) => {
+const fetchAttendanceRange = async (start, end) => {
   try {
     setLoading(true);
     const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${selectedEmployee}`);
     if (!response.ok) throw new Error("Failed to fetch range attendance data");
+
     const data = await response.json();
-    const groupedData = groupAttendanceByDate(data);
-    groupedData.sort((a, b) => new Date(a.attendance_date) - new Date(b.attendance_date));
-    setFilteredAttendanceData(groupedData);
+    const groupedData = groupAttendanceByDate(data); // your existing grouping logic
+    const mergedWithAbsent = mergeAttendanceWithAbsent(groupedData, start, end);
+    setFilteredAttendanceData(mergedWithAbsent);
   } catch (err) {
     setError(err.message);
   } finally {
     setLoading(false);
   }
 };
+
 
 
   // Fetch specific employee attendance
@@ -98,6 +104,57 @@ const AttendancePortal = () => {
       setLoading(false);
     }
   };
+
+  const generateDateRange = (start, end) => {
+  const dates = [];
+  const current = new Date(start);
+  const endDate = new Date(end);
+
+  while (current <= endDate) {
+    dates.push(new Date(current));
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates.map(d =>
+    d.toISOString().split('T')[0] // "YYYY-MM-DD"
+  );
+};
+
+
+const mergeAttendanceWithAbsent = (records, start, end) => {
+  const allDates = generateDateRange(start, end);
+
+  // Make a map of present records by date
+  const recordMap = {};
+  records.forEach(rec => {
+    const dateKey = rec.attendance_date.split('T')[0];
+    recordMap[dateKey] = rec;
+  });
+
+  // Build final list with both present and absent
+  const merged = allDates.map(date => {
+    if (recordMap[date]) {
+      return {
+        ...recordMap[date],
+        status: (recordMap[date].check_in || recordMap[date].check_out) ? "present" : "absent"
+      };
+    } else {
+      return {
+        attendance_date: date,
+        check_in: "-",
+        check_out: "-",
+        overtime: 0,
+        status: "absent"
+      };
+    }
+  });
+
+  // Sort ascending
+  merged.sort((a, b) => new Date(a.attendance_date) - new Date(b.attendance_date));
+
+  return merged;
+};
+
 
   const groupAttendanceByDate = (records) => {
   const grouped = {};
@@ -608,7 +665,8 @@ const AttendancePortal = () => {
                     </div>
                     <div>
                       <p className="text-sm text-green-600">Present Days</p>
-                      <p className="text-xl font-bold text-green-800">{employeeMonthlyData.stats.total_present}</p>
+                      {/* <p className="text-xl font-bold text-green-800">{employeeMonthlyData.stats.total_present}</p> */}
+                      <p className="text-xl font-bold text-green-800">{totalPresent}</p>
                     </div>
                   </div>
                 </div>
@@ -622,7 +680,7 @@ const AttendancePortal = () => {
                     </div>
                     <div>
                       <p className="text-sm text-rose-600">Absent Days</p>
-                      <p className="text-xl font-bold text-rose-800">{employeeMonthlyData.stats.total_absent}</p>
+                      <p className="text-xl font-bold text-rose-800">{totalAbsent}</p>
                     </div>
                   </div>
                 </div>
