@@ -128,26 +128,32 @@ const AttendancePortal = () => {
     );
   };
 
+  const getDayName = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { weekday: 'long' });
+  };
+
+
   const getCalendarMonthRange = (monthString) => {
-  const [year, month] = monthString.split('-').map(Number);
-  const start = new Date(year, month - 1, 1);
-  let end;
+    const [year, month] = monthString.split('-').map(Number);
+    const start = new Date(year, month - 1, 1);
+    let end;
 
-  const today = new Date();
-  const currentMonth = today.getMonth() + 1;
-  const currentYear = today.getFullYear();
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
 
-  // 🔸 If selected month is the current month — end on today's date
-  if (month === currentMonth && year === currentYear) {
-    end = today;
-  } else {
-    // 🔸 Otherwise end on the last day of the selected month
-    end = new Date(year, month, 0);
-  }
+    // 🔸 If selected month is the current month — end on today's date
+    if (month === currentMonth && year === currentYear) {
+      end = today;
+    } else {
+      // 🔸 Otherwise end on the last day of the selected month
+      end = new Date(year, month, 0);
+    }
 
-  const formatDate = (d) => d.toISOString().split('T')[0];
-  return { start: formatDate(start), end: formatDate(end) };
-};
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    return { start: formatDate(start), end: formatDate(end) };
+  };
 
 
   const mergeAttendanceWithAbsent = (records, start, end) => {
@@ -419,12 +425,28 @@ const AttendancePortal = () => {
     }
   };
 
-  const StatusBadge = ({ status }) => (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-        ${status === "present" ? "bg-green-100 text-green-800" : "bg-rose-100 text-rose-800"}`}>
-      {status === "present" ? "Present" : "Absent"}
-    </span>
-  );
+  const StatusBadge = ({ status }) => {
+    let colorClass = "";
+    let text = "";
+
+    if (status === "present") {
+      colorClass = "bg-green-100 text-green-800";
+      text = "Present";
+    } else if (status === "absent") {
+      colorClass = "bg-rose-100 text-rose-800";
+      text = "Absent";
+    } else if (status === "sunday") {
+      colorClass = "bg-slate-200 text-slate-700";
+      text = "Sunday";
+    }
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+        {text}
+      </span>
+    );
+  };
+
 
   // Format date for display
   const formatDisplayDate = (dateString) => {
@@ -807,7 +829,17 @@ const AttendancePortal = () => {
                       : employeeMonthlyData?.attendance || []
                     ).map((item) => (
                       <tr key={item.id}>
-                        <td className="p-4 font-medium text-slate-900">{formatDisplayDate(item.attendance_date)}</td>
+                        <td className={`p-4 font-medium flex items-center gap-2 ${new Date(item.attendance_date).getDay() === 0 ? 'text-red-500' : 'text-slate-900'
+                          }`}>
+                          {formatDisplayDate(item.attendance_date)}
+                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${new Date(item.attendance_date).getDay() === 0
+                            ? 'bg-red-100 text-red-600'
+                            : 'bg-slate-100 text-slate-600'
+                            }`}>
+                            {getDayName(item.attendance_date)}
+                          </span>
+                        </td>
+
                         <td className="p-4 text-slate-600">{formatTime(item.check_in)}</td>
                         <td className="p-4 text-slate-600">{formatTime(item.check_out)}</td>
                         <td className="p-4">
