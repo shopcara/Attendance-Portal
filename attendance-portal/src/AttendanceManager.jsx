@@ -29,6 +29,16 @@ const AttendanceManager = () => {
         }
     };
 
+    const formatOvertime = (minutes) => {
+        if (!minutes || minutes === 0) return "-";
+        const hrs = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        if (hrs > 0 && mins > 0) return `${hrs}h ${mins}m`;
+        if (hrs > 0) return `${hrs}h`;
+        return `${mins}m`;
+    };
+
+
     // Fetch attendance records
     const fetchAttendanceRecords = async () => {
         try {
@@ -41,8 +51,8 @@ const AttendanceManager = () => {
             if (filters.employee_id) params.append('employee_id', filters.employee_id);
 
             const queryString = params.toString();
-            const url = queryString 
-                ? `/api/attendance/crud?${queryString}` 
+            const url = queryString
+                ? `/api/attendance/crud?${queryString}`
                 : '/api/attendance/crud';
 
             console.log('Fetching from URL:', url);
@@ -62,7 +72,7 @@ const AttendanceManager = () => {
         }
     };
 
-    // Handle form submission for create/update - FIXED ENDPOINTS
+    // Handle form submission for create/update
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -73,15 +83,14 @@ const AttendanceManager = () => {
             emp_id: parseInt(formData.get('emp_id')),
             attendance_date: formData.get('attendance_date'),
             check_in: formData.get('check_in') || "",
-            check_out: formData.get('check_out') || "",
-            overtime: formData.get('overtime') || "0"
+            check_out: formData.get('check_out') || ""
         };
+
 
         try {
             let response;
 
             if (editingRecord) {
-                // CORRECTED: Use the correct endpoint with ID
                 response = await fetch(`/api/attendance/crud/${editingRecord.id}`, {
                     method: 'PUT',
                     headers: {
@@ -90,7 +99,6 @@ const AttendanceManager = () => {
                     body: JSON.stringify(recordData)
                 });
             } else {
-                // CORRECTED: Use the correct endpoint
                 response = await fetch('/api/attendance/crud', {
                     method: 'POST',
                     headers: {
@@ -310,7 +318,7 @@ const AttendanceManager = () => {
                                     <input
                                         type="time"
                                         name="check_in"
-                                        step="1" 
+                                        step="1"
                                         defaultValue={editingRecord?.check_in || ''}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
@@ -321,13 +329,13 @@ const AttendanceManager = () => {
                                     <input
                                         type="time"
                                         name="check_out"
-                                        step="1" 
+                                        step="1"
                                         defaultValue={editingRecord?.check_out || ''}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
                                 </div>
 
-                                <div>
+                                {/* <div>
                                     <label className="block text-sm font-medium text-slate-700 mb-1">Overtime (minutes)</label>
                                     <input
                                         type="number"
@@ -337,7 +345,7 @@ const AttendanceManager = () => {
                                         defaultValue={editingRecord?.overtime || '0'}
                                         className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                                     />
-                                </div>
+                                </div> */}
                             </div>
 
                             <div className="flex justify-end space-x-3">
@@ -406,9 +414,13 @@ const AttendanceManager = () => {
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
                                                 {formatTime(record.check_out)}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900">
-                                                {record.overtime ? `${record.overtime} mins` : '-'}
+                                            <td
+                                                className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${record.overtime > 0 ? "text-green-600" : "text-slate-900"
+                                                    }`}
+                                            >
+                                                {formatOvertime(record.overtime)}
                                             </td>
+
                                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 <button
                                                     onClick={() => {
