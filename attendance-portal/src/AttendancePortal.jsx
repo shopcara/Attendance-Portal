@@ -35,7 +35,7 @@ const AttendancePortal = () => {
       const data = await response.json();
 
       // keep only employees WITHOUT AttendanceException = YES (case/space-safe)
-      const filtered = data.filter(emp => !isException(emp.AttendanceException));
+      const filtered = data.filter(emp => !isException(emp.AttendanceException || emp.Status == "Inactive"));
 
       setEmployees(filtered);
 
