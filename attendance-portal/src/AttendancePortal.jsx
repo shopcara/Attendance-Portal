@@ -18,7 +18,7 @@ const AttendancePortal = () => {
   const [filteredAttendanceData, setFilteredAttendanceData] = useState([]);
 
   const totalPresent = filteredAttendanceData.filter(d => d.status === "present").length;
-const totalAbsent = filteredAttendanceData.filter(d => d.status === "absent").length;
+  const totalAbsent = filteredAttendanceData.filter(d => d.status === "absent").length;
 
 
 
@@ -69,30 +69,30 @@ const totalAbsent = filteredAttendanceData.filter(d => d.status === "absent").le
     }
   };
 
-const fetchAttendanceRange = async (start, end) => {
-  try {
-    setLoading(true);
-    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${selectedEmployee}`);
-    if (!response.ok) throw new Error("Failed to fetch range attendance data");
+  const fetchAttendanceRange = async (start, end) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${selectedEmployee}`);
+      if (!response.ok) throw new Error("Failed to fetch range attendance data");
 
-    const data = await response.json();
-    const groupedData = groupAttendanceByDate(data); // your existing grouping logic
-    const mergedWithAbsent = mergeAttendanceWithAbsent(groupedData, start, end);
-    setFilteredAttendanceData(mergedWithAbsent);
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      const data = await response.json();
+      const groupedData = groupAttendanceByDate(data); // your existing grouping logic
+      const mergedWithAbsent = mergeAttendanceWithAbsent(groupedData, start, end);
+      setFilteredAttendanceData(mergedWithAbsent);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-const getMonthDateRange = (monthString) => {
-  const [year, month] = monthString.split('-').map(Number);
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0); // last day of month
-  const formatDate = (d) => d.toISOString().split('T')[0];
-  return { start: formatDate(start), end: formatDate(end) };
-};
+  const getMonthDateRange = (monthString) => {
+    const [year, month] = monthString.split('-').map(Number);
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0); // last day of month
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    return { start: formatDate(start), end: formatDate(end) };
+  };
 
 
 
@@ -114,117 +114,150 @@ const getMonthDateRange = (monthString) => {
   };
 
   const generateDateRange = (start, end) => {
-  const dates = [];
-  const current = new Date(start);
-  const endDate = new Date(end);
+    const dates = [];
+    const current = new Date(start);
+    const endDate = new Date(end);
 
-  while (current <= endDate) {
-    dates.push(new Date(current));
-    current.setDate(current.getDate() + 1);
-  }
-
-  return dates.map(d =>
-    d.toISOString().split('T')[0] // "YYYY-MM-DD"
-  );
-};
-
-const getCalendarMonthRange = (monthString) => {
-  const [year, month] = monthString.split('-').map(Number);
-  const start = new Date(year, month - 1, 1);
-  const end = new Date(year, month, 0); // last day of month
-  const formatDate = (d) => d.toISOString().split('T')[0];
-  return { start: formatDate(start), end: formatDate(end) };
-};
-
-const mergeAttendanceWithAbsent = (records, start, end) => {
-  const allDates = generateDateRange(start, end);
-
-  // Make a map of present records by date
-  const recordMap = {};
-  records.forEach(rec => {
-    const dateKey = rec.attendance_date.split('T')[0];
-    recordMap[dateKey] = rec;
-  });
-
-  // Build final list with both present and absent
-  const merged = allDates.map(date => {
-    if (recordMap[date]) {
-      return {
-        ...recordMap[date],
-        status: (recordMap[date].check_in || recordMap[date].check_out) ? "present" : "absent"
-      };
-    } else {
-      return {
-        attendance_date: date,
-        check_in: "-",
-        check_out: "-",
-        overtime: 0,
-        status: "absent"
-      };
+    while (current <= endDate) {
+      dates.push(new Date(current));
+      current.setDate(current.getDate() + 1);
     }
-  });
 
-  // Sort ascending
-  merged.sort((a, b) => new Date(a.attendance_date) - new Date(b.attendance_date));
+    return dates.map(d =>
+      d.toISOString().split('T')[0] // "YYYY-MM-DD"
+    );
+  };
 
-  return merged;
-};
+  const getCalendarMonthRange = (monthString) => {
+    const [year, month] = monthString.split('-').map(Number);
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0); // last day of month
+    const formatDate = (d) => d.toISOString().split('T')[0];
+    return { start: formatDate(start), end: formatDate(end) };
+  };
+
+  const mergeAttendanceWithAbsent = (records, start, end) => {
+    const allDates = generateDateRange(start, end);
+
+    // Make a map of present records by date
+    const recordMap = {};
+    records.forEach(rec => {
+      const dateKey = rec.attendance_date.split('T')[0];
+      recordMap[dateKey] = rec;
+    });
+
+    // Build final list with both present and absent
+    const merged = allDates.map(date => {
+      if (recordMap[date]) {
+        return {
+          ...recordMap[date],
+          status: (recordMap[date].check_in || recordMap[date].check_out) ? "present" : "absent"
+        };
+      } else {
+        return {
+          attendance_date: date,
+          check_in: "-",
+          check_out: "-",
+          overtime: 0,
+          status: "absent"
+        };
+      }
+    });
+
+    // Sort ascending
+    merged.sort((a, b) => new Date(a.attendance_date) - new Date(b.attendance_date));
+
+    return merged;
+  };
 
 
   const groupAttendanceByDate = (records) => {
-  const grouped = {};
+    const grouped = {};
 
-  records.forEach(rec => {
-    const key = `${rec.emp_id}_${rec.attendance_date}`;
-    if (!grouped[key]) {
-      grouped[key] = {
-        ...rec,
-        check_in: rec.check_in,
-        check_out: rec.check_out,
-      };
-    } else {
-      // Choose earliest check-in
-      if (rec.check_in && (!grouped[key].check_in || rec.check_in < grouped[key].check_in)) {
-        grouped[key].check_in = rec.check_in;
+    records.forEach(rec => {
+      const key = `${rec.emp_id}_${rec.attendance_date}`;
+      if (!grouped[key]) {
+        grouped[key] = {
+          ...rec,
+          check_in: rec.check_in,
+          check_out: rec.check_out,
+        };
+      } else {
+        // Choose earliest check-in
+        if (rec.check_in && (!grouped[key].check_in || rec.check_in < grouped[key].check_in)) {
+          grouped[key].check_in = rec.check_in;
+        }
+        // Choose latest check-out
+        if (rec.check_out && (!grouped[key].check_out || rec.check_out > grouped[key].check_out)) {
+          grouped[key].check_out = rec.check_out;
+        }
       }
-      // Choose latest check-out
-      if (rec.check_out && (!grouped[key].check_out || rec.check_out > grouped[key].check_out)) {
-        grouped[key].check_out = rec.check_out;
-      }
-    }
-  });
+    });
 
-  return Object.values(grouped);
-};
+    return Object.values(grouped);
+  };
 
 
   // Fetch employee monthly report
   const fetchEmployeeMonthlyReport = async (empId, month) => {
-  try {
-    setLoading(true);
-    // 🔸 FIX: Use calendar month range instead of 20–19 cycle
-    const { start, end } = getCalendarMonthRange(month);
-    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${empId}`);
-    if (!response.ok) throw new Error("Failed to fetch monthly data");
+    try {
+      setLoading(true);
 
-    const data = await response.json();
-    const grouped = groupAttendanceByDate(data);
-    const merged = mergeAttendanceWithAbsent(grouped, start, end);
+      // 🧭 1. Strictly use calendar month (1st to 30/31)
+      const { start, end } = getCalendarMonthRange(month);
 
-    setFilteredAttendanceData(merged);
-    setEmployeeMonthlyData({
-      stats: {
-        total_hours: data.reduce((acc, r) => acc + (r.hours_worked || 0), 0),
-        total_overtime_minutes: data.reduce((acc, r) => acc + (r.overtime || 0), 0),
-      },
-      attendance: merged
-    });
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
+      // 🧭 2. Fetch all records for this employee
+      const response = await fetch(
+        `/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${empId}`
+      );
+      if (!response.ok) throw new Error("Failed to fetch monthly data");
+
+      const data = await response.json();
+
+      // 🧹 3. Filter strictly between start and end date (removes 31/08)
+      const filteredData = data.filter(r => {
+        const date = r.attendance_date.split('T')[0];
+        return date >= start && date <= end;
+      });
+
+      // 🧮 4. Calculate total minutes worked from check_in/check_out
+      const calculateTotalMinutes = (checkIn, checkOut) => {
+        if (!checkIn || !checkOut || checkIn === "-" || checkOut === "-") return 0;
+        const [inH, inM] = checkIn.split(':').map(Number);
+        const [outH, outM] = checkOut.split(':').map(Number);
+        let total = (outH * 60 + outM) - (inH * 60 + inM);
+        if (total < 0) total += 24 * 60; // overnight fix
+        return total;
+      };
+
+      const totalMinutes = filteredData.reduce((acc, r) => {
+        return acc + calculateTotalMinutes(r.check_in, r.check_out);
+      }, 0);
+      const totalHours = (totalMinutes / 60).toFixed(1);
+
+      // 🧮 5. Group & merge absent dates
+      const grouped = groupAttendanceByDate(filteredData);
+      const merged = mergeAttendanceWithAbsent(grouped, start, end);
+
+      // 📝 6. Set final state
+      setFilteredAttendanceData(merged);
+      setEmployeeMonthlyData({
+        stats: {
+          total_hours: totalHours,
+          total_overtime_minutes: filteredData.reduce(
+            (acc, r) => acc + (r.overtime || 0),
+            0
+          ),
+        },
+        attendance: merged,
+      });
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   // Load initial data
   useEffect(() => {
