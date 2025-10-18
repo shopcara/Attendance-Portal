@@ -128,6 +128,13 @@ const getMonthDateRange = (monthString) => {
   );
 };
 
+const getCalendarMonthRange = (monthString) => {
+  const [year, month] = monthString.split('-').map(Number);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0); // last day of month
+  const formatDate = (d) => d.toISOString().split('T')[0];
+  return { start: formatDate(start), end: formatDate(end) };
+};
 
 const mergeAttendanceWithAbsent = (records, start, end) => {
   const allDates = generateDateRange(start, end);
@@ -195,25 +202,29 @@ const mergeAttendanceWithAbsent = (records, start, end) => {
   const fetchEmployeeMonthlyReport = async (empId, month) => {
   try {
     setLoading(true);
-    const response = await fetch(`/api/employees/${empId}/monthly-report?month=${month}`);
-    if (!response.ok) throw new Error("Failed to fetch employee monthly report");
+    // 🔸 FIX: Use calendar month range instead of 20–19 cycle
+    const { start, end } = getCalendarMonthRange(month);
+    const response = await fetch(`/api/attendance/range?start_date=${start}&end_date=${end}&employee_id=${empId}`);
+    if (!response.ok) throw new Error("Failed to fetch monthly data");
+
     const data = await response.json();
-
-    setEmployeeMonthlyData(data);
-
-    // 🧠 merge absent dates also
-    const { start, end } = getMonthDateRange(month);
-    const grouped = groupAttendanceByDate(data.attendance || []);
+    const grouped = groupAttendanceByDate(data);
     const merged = mergeAttendanceWithAbsent(grouped, start, end);
-    setFilteredAttendanceData(merged);
 
+    setFilteredAttendanceData(merged);
+    setEmployeeMonthlyData({
+      stats: {
+        total_hours: data.reduce((acc, r) => acc + (r.hours_worked || 0), 0),
+        total_overtime_minutes: data.reduce((acc, r) => acc + (r.overtime || 0), 0),
+      },
+      attendance: merged
+    });
   } catch (err) {
     setError(err.message);
   } finally {
     setLoading(false);
   }
 };
-
 
   // Load initial data
   useEffect(() => {
