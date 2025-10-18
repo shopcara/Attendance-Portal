@@ -129,12 +129,26 @@ const AttendancePortal = () => {
   };
 
   const getCalendarMonthRange = (monthString) => {
-    const [year, month] = monthString.split('-').map(Number);
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0); // last day of month
-    const formatDate = (d) => d.toISOString().split('T')[0];
-    return { start: formatDate(start), end: formatDate(end) };
-  };
+  const [year, month] = monthString.split('-').map(Number);
+  const start = new Date(year, month - 1, 1);
+  let end;
+
+  const today = new Date();
+  const currentMonth = today.getMonth() + 1;
+  const currentYear = today.getFullYear();
+
+  // 🔸 If selected month is the current month — end on today's date
+  if (month === currentMonth && year === currentYear) {
+    end = today;
+  } else {
+    // 🔸 Otherwise end on the last day of the selected month
+    end = new Date(year, month, 0);
+  }
+
+  const formatDate = (d) => d.toISOString().split('T')[0];
+  return { start: formatDate(start), end: formatDate(end) };
+};
+
 
   const mergeAttendanceWithAbsent = (records, start, end) => {
     const allDates = generateDateRange(start, end);
